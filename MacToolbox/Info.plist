@@ -28,5 +28,7 @@
 	<string>Mac Toolbox использует System Events, чтобы выключить Mac по таймеру сна.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>© 2026 webster</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Mac Toolbox записывает микрофон, если вы включили его в записи экрана или звука.</string>
 </dict>
 </plist>

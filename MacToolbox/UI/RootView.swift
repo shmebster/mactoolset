@@ -18,6 +18,8 @@ struct RootView: View {
             VStack(spacing: 8) {
                 PreventSleepView()
                 SleepTimerView()
+                ScreenRecorderView()
+                AudioRecorderView()
             }
             .padding(10)
         }
@@ -34,6 +36,8 @@ private struct SettingsMenu: View {
         Menu {
             Toggle("Запускать при входе", isOn: $launchAtLogin)
             Toggle("Обратный отсчёт в меню-баре", isOn: $showCountdown)
+            Button("Открыть папку видеозаписей") { NSWorkspace.shared.open(Recordings.videoFolder) }
+            Button("Открыть папку аудиозаписей") { NSWorkspace.shared.open(Recordings.audioFolder) }
             Divider()
             Button("Выйти из Mac Toolbox") { NSApp.terminate(nil) }
                 .keyboardShortcut("q")

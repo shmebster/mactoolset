@@ -83,3 +83,20 @@ struct ChipStyle: ButtonStyle {
             .contentShape(shape)
     }
 }
+
+/// Выбор одного варианта из нескольких в виде ряда чипов (растягивается на всю ширину, в отличие от segmented).
+struct ChipPicker<Value: Hashable & Identifiable>: View {
+    let options: [Value]
+    let title: (Value) -> String
+    @Binding var selection: Value
+    let tint: Color
+
+    var body: some View {
+        HStack(spacing: 6) {
+            ForEach(options) { option in
+                Button(title(option)) { selection = option }
+                    .buttonStyle(ChipStyle(tint: tint, isActive: selection == option, isDefault: false))
+            }
+        }
+    }
+}

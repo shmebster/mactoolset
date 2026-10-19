@@ -2,7 +2,7 @@ name: MacToolbox
 options:
   bundleIdPrefix: dev.webster
   deploymentTarget:
-    macOS: "14.0"
+    macOS: "15.0"
   createIntermediateGroups: true
 settings:
   base:
@@ -30,6 +30,7 @@ targets:
         CFBundleDisplayName: Mac Toolbox
         LSUIElement: true
         LSApplicationCategoryType: public.app-category.utilities
+        NSMicrophoneUsageDescription: Mac Toolbox записывает микрофон, если вы включили его в записи экрана или звука.
         NSAppleEventsUsageDescription: Mac Toolbox использует System Events, чтобы выключить Mac по таймеру сна.
         NSHumanReadableCopyright: © 2026 webster
     settings:

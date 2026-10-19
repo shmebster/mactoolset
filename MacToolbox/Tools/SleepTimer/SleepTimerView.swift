@@ -17,11 +17,7 @@ struct SleepTimerView: View {
             isExpanded: $isExpanded
         ) {
             VStack(alignment: .leading, spacing: 10) {
-                Picker("", selection: $model.action) {
-                    ForEach(SleepAction.allCases) { Text($0.title).tag($0) }
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
+                ChipPicker(options: SleepAction.allCases, title: \.title, selection: $model.action, tint: tint)
 
                 DurationPicker(
                     presets: SleepTimer.presets,
@@ -45,7 +41,7 @@ struct SleepTimerView: View {
 
     private var status: String {
         guard model.isActive, let remaining = model.remaining else {
-            return "Выключено · по умолчанию \(DurationFormat.short(model.lastMinutes))"
+            return "По умолчанию: \(DurationFormat.short(model.lastMinutes))"
         }
         return "\(model.action.countdownPrefix) \(DurationFormat.countdown(remaining))"
     }
