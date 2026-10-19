@@ -1,6 +1,6 @@
 APP := build/Build/Products/Debug/MacToolbox.app
 
-.PHONY: project build run clean
+.PHONY: project build run dmg clean
 
 project:
 	xcodegen generate --quiet
@@ -13,5 +13,8 @@ run: build
 	-pkill -x MacToolbox
 	open $(APP)
 
+dmg:
+	scripts/package.sh $(or $(VERSION),0.0.0-local)
+
 clean:
-	rm -rf build MacToolbox.xcodeproj
+	rm -rf build dist MacToolbox.xcodeproj

@@ -28,6 +28,8 @@ targets:
       path: MacToolbox/Info.plist
       properties:
         CFBundleDisplayName: Mac Toolbox
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSUIElement: true
         LSApplicationCategoryType: public.app-category.utilities
         NSMicrophoneUsageDescription: Mac Toolbox записывает микрофон, если вы включили его в записи экрана или звука.

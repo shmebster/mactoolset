@@ -10,6 +10,12 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/shmebster/mactoolset/releases/latest"><img src="https://img.shields.io/github/v/release/shmebster/mactoolset?include_prereleases&label=%D1%80%D0%B5%D0%BB%D0%B8%D0%B7" alt="Релиз"></a>
+  <a href="https://github.com/shmebster/mactoolset/actions/workflows/ci.yml"><img src="https://github.com/shmebster/mactoolset/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <img src="https://img.shields.io/badge/macOS-15%2B-blue" alt="macOS 15+">
+</p>
+
+<p align="center">
   <img src="docs/images/panel.png" width="340" alt="Панель Mac Toolbox">
 </p>
 
@@ -35,6 +41,19 @@
 
 Записи сохраняются в `~/Movies/Mac Toolbox` (видео) и `~/Music/Mac Toolbox` (звук). Обе папки открываются из меню настроек.
 
+## Установка
+
+1. Скачайте `MacToolbox-*.dmg` со страницы [последнего релиза](https://github.com/shmebster/mactoolset/releases/latest).
+2. Откройте DMG и перетащите **MacToolbox** в «Программы».
+3. Приложение подписано ad-hoc и не нотаризовано, поэтому при первом запуске macOS его заблокирует.
+   Откройте *Системные настройки → Конфиденциальность и безопасность* и нажмите **«Всё равно открыть»**
+   или снимите карантин в Терминале:
+   ```sh
+   xattr -dr com.apple.quarantine /Applications/MacToolbox.app
+   ```
+
+Сборка универсальная — работает и на Apple Silicon, и на Intel.
+
 ## Требования
 
 - macOS 15 Sequoia или новее
@@ -54,7 +73,8 @@ make run
 | `make run` | генерирует проект, собирает Debug и перезапускает приложение |
 | `make build` | только сборка (результат в `build/Build/Products/Debug/MacToolbox.app`) |
 | `make project` | только генерирует `MacToolbox.xcodeproj` — для работы в Xcode |
-| `make clean` | удаляет `build/` и сгенерированный проект |
+| `make dmg VERSION=0.2.0` | универсальный Release-билд, DMG и ZIP в `dist/` (как в CI) |
+| `make clean` | удаляет `build/`, `dist/` и сгенерированный проект |
 
 `MacToolbox.xcodeproj` не хранится в git — источник правды `project.yml`.
 
@@ -72,6 +92,23 @@ make run
 > Сборка подписывается ad-hoc, поэтому после пересборки macOS может снова запросить
 > доступ к записи экрана. Если доступ «сломался» — удалите Mac Toolbox из списка в
 > *Системные настройки → Конфиденциальность → Запись экрана и системного звука* и выдайте заново.
+
+## Выпуск релиза
+
+1. Перенесите изменения из раздела «Не выпущено» в `CHANGELOG.md` под заголовок `## 0.2.0 — <дата>`.
+2. Закоммитьте и поставьте тег:
+   ```sh
+   git tag v0.2.0
+   git push origin main v0.2.0
+   ```
+3. Workflow [`Release`](.github/workflows/release.yml) соберёт универсальное приложение, упакует DMG и ZIP
+   (с `SHA256SUMS.txt`) и опубликует GitHub Release. Описание релиза берётся из раздела этой версии в
+   `CHANGELOG.md` плюс инструкция по установке. Версии с дефисом (`v0.3.0-beta.1`) публикуются как pre-release.
+
+Тестовую сборку без публикации можно запустить вручную: *Actions → Release → Run workflow*. Файлы
+появятся в артефактах запуска.
+
+На каждый пуш в `main` и каждый PR [`CI`](.github/workflows/ci.yml) проверяет, что проект собирается.
 
 ## Документация
 
