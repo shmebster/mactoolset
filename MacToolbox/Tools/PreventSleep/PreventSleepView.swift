@@ -35,8 +35,8 @@ struct PreventSleepView: View {
         guard model.isActive else {
             return "По умолчанию: \(DurationFormat.short(model.lastMinutes))"
         }
-        if let remaining = model.remaining {
-            return "Активно · ещё \(DurationFormat.countdown(remaining))"
+        if let minutes = model.remainingMinutes {
+            return "Активно · ещё \(DurationFormat.compact(minutes: minutes))"
         }
         return "Активно · бессрочно"
     }

@@ -40,9 +40,9 @@ struct SleepTimerView: View {
     }
 
     private var status: String {
-        guard model.isActive, let remaining = model.remaining else {
+        guard model.isActive, let minutes = model.remainingMinutes else {
             return "По умолчанию: \(DurationFormat.short(model.lastMinutes))"
         }
-        return "\(model.action.countdownPrefix) \(DurationFormat.countdown(remaining))"
+        return "\(model.action.countdownPrefix) \(DurationFormat.compact(minutes: minutes))"
     }
 }

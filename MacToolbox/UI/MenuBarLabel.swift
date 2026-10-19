@@ -9,28 +9,29 @@ struct MenuBarLabel: View {
     @AppStorage("ui.showCountdown") private var showCountdown = true
 
     var body: some View {
-        let (icon, remaining) = state
+        let (icon, text) = state
         HStack(spacing: 4) {
             Image(nsImage: SVGIcon.image(icon, size: 18))
-            if showCountdown, let remaining {
-                Text(DurationFormat.countdown(remaining))
+            if showCountdown, let text {
+                Text(text)
                     .monospacedDigit()
             }
         }
     }
 
-    private var state: (String, TimeInterval?) {
+    /// Записи показывают секунды, таймеры — только минуты (обновляются раз в минуту).
+    private var state: (String, String?) {
         if let recorder = ScreenRecorder.all.first(where: { $0.phase == .recording }) {
-            return ("record", recorder.elapsed)
+            return ("record", recorder.elapsed.map(DurationFormat.countdown))
         }
         if audioRecorder.phase == .recording {
-            return ("record", audioRecorder.elapsed)
+            return ("record", audioRecorder.elapsed.map(DurationFormat.countdown))
         }
         if sleepTimer.isActive {
-            return ("sleep-timer", sleepTimer.remaining)
+            return ("sleep-timer", sleepTimer.remainingMinutes.map { DurationFormat.compact(minutes: $0) })
         }
         if preventSleep.isActive {
-            return ("prevent-sleep", preventSleep.remaining)
+            return ("prevent-sleep", preventSleep.remainingMinutes.map { DurationFormat.compact(minutes: $0) })
         }
         return ("toolbox", nil)
     }

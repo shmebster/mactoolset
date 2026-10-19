@@ -54,7 +54,8 @@ final class SleepTimer {
     private(set) var isActive = false
     private(set) var activeMinutes: Int?
     private(set) var endDate: Date?
-    private(set) var now = Date()
+    /// Остаток в минутах — меняется раз в минуту.
+    private(set) var remainingMinutes: Int?
 
     var lastMinutes: Int {
         didSet { UserDefaults.standard.set(lastMinutes, forKey: Keys.lastMinutes) }
@@ -62,10 +63,6 @@ final class SleepTimer {
 
     var action: SleepAction {
         didSet { UserDefaults.standard.set(action.rawValue, forKey: Keys.action) }
-    }
-
-    var remaining: TimeInterval? {
-        endDate.map { $0.timeIntervalSince(now) }
     }
 
     /// Вызывается прямо перед выполнением действия.
@@ -90,16 +87,17 @@ final class SleepTimer {
     func start(minutes: Int) {
         guard minutes > 0 else { return }
         lastMinutes = minutes
-        now = Date()
         isActive = true
         activeMinutes = minutes
-        endDate = now.addingTimeInterval(TimeInterval(minutes * 60))
+        endDate = Date().addingTimeInterval(TimeInterval(minutes * 60))
+        updateRemaining()
         ticker.start(reason: "Sleep Timer countdown") { [weak self] in self?.tick() }
     }
 
     func extend(minutes: Int) {
         guard let endDate else { return }
         self.endDate = endDate.addingTimeInterval(TimeInterval(minutes * 60))
+        updateRemaining()
     }
 
     func stop() {
@@ -107,11 +105,19 @@ final class SleepTimer {
         isActive = false
         activeMinutes = nil
         endDate = nil
+        remainingMinutes = nil
+    }
+
+    private func updateRemaining() {
+        let minutes = endDate.map(DurationFormat.minutesLeft(until:))
+        if minutes != remainingMinutes { remainingMinutes = minutes }
     }
 
     private func tick() {
-        now = Date()
-        guard let endDate, now >= endDate else { return }
+        guard let endDate, Date() >= endDate else {
+            updateRemaining()
+            return
+        }
         let action = action
         stop()
         willFire?()

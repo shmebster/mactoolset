@@ -12,7 +12,8 @@ final class PreventSleep {
     /// Длительность текущей сессии (0 — бессрочно).
     private(set) var activeMinutes: Int?
     private(set) var endDate: Date?
-    private(set) var now = Date()
+    /// Остаток в минутах. Меняется раз в минуту, поэтому UI и меню-бар не перерисовываются каждую секунду.
+    private(set) var remainingMinutes: Int?
 
     /// Последняя выбранная длительность — используется по клику на переключатель.
     var lastMinutes: Int {
@@ -24,10 +25,6 @@ final class PreventSleep {
             UserDefaults.standard.set(keepDisplayOn, forKey: Keys.keepDisplayOn)
             if isActive { createAssertion() }
         }
-    }
-
-    var remaining: TimeInterval? {
-        endDate.map { $0.timeIntervalSince(now) }
     }
 
     @ObservationIgnored private var assertionID: IOPMAssertionID = 0
@@ -51,10 +48,10 @@ final class PreventSleep {
     func start(minutes: Int) {
         lastMinutes = minutes
         createAssertion()
-        now = Date()
         isActive = true
         activeMinutes = minutes
-        endDate = minutes > 0 ? now.addingTimeInterval(TimeInterval(minutes * 60)) : nil
+        endDate = minutes > 0 ? Date().addingTimeInterval(TimeInterval(minutes * 60)) : nil
+        updateRemaining()
 
         if endDate != nil {
             ticker.start(reason: "Prevent Sleep countdown") { [weak self] in self?.tick() }
@@ -70,11 +67,21 @@ final class PreventSleep {
         isActive = false
         activeMinutes = nil
         endDate = nil
+        remainingMinutes = nil
     }
 
+    /// Проверка каждую секунду (точность срабатывания), но публикуем только смену минуты.
     private func tick() {
-        now = Date()
-        if let endDate, now >= endDate { stop() }
+        if let endDate, Date() >= endDate {
+            stop()
+        } else {
+            updateRemaining()
+        }
+    }
+
+    private func updateRemaining() {
+        let minutes = endDate.map(DurationFormat.minutesLeft(until:))
+        if minutes != remainingMinutes { remainingMinutes = minutes }
     }
 
     private func createAssertion() {
