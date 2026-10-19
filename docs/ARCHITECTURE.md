@@ -17,7 +17,7 @@ MacToolbox/
 ├── Tools/
 │   ├── PreventSleep/            IOPMAssertion
 │   ├── SleepTimer/              pmset / AppleScript
-│   ├── ScreenRecorder/          SCStream + SCRecordingOutput, выбор области и окна
+│   ├── ScreenRecorder/          «Запись экрана» и «Запись окна»: SCStream + SCRecordingOutput
 │   └── AudioRecorder/           SCStream (audio-only) → .caf → сведение в .m4a
 ├── UI/
 │   ├── RootView.swift           шапка, меню настроек, список карточек
@@ -88,9 +88,14 @@ MacToolbox/
 `ProcessInfo.beginActivity(.userInitiatedAllowingIdleSystemSleep)`: так App Nap не
 включается, а система при этом может уснуть по простою.
 
-### Запись экрана
-- **Экран** — дисплей под курсором; окна самого Mac Toolbox исключаются из фильтра.
-- **Окно** — системный `SCContentSharingPicker` (окно или приложение целиком).
+### Запись экрана и запись окна
+Это два инструмента на одной модели: `ScreenRecorder.screen` и `ScreenRecorder.window`
+(`ScreenRecorder.Kind`). Настройки у них раздельные (префиксы `screenRecorder.*` и
+`windowRecorder.*` в `UserDefaults`), а `isBlocked` не даёт запустить вторую запись,
+пока идёт первая.
+
+- **Весь экран** — дисплей под курсором; окна самого Mac Toolbox исключаются из фильтра.
+- **Окно** (отдельная карточка) — системный `SCContentSharingPicker` (окно или приложение целиком).
 - **Область** — `AreaSelector`: прозрачное окно уровня `.screenSaver` поверх экрана,
   выделение через `DragGesture`. Прямоугольник уходит в `SCStreamConfiguration.sourceRect`.
 

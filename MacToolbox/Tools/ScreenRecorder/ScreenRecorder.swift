@@ -7,9 +7,12 @@ enum CaptureMode: String, CaseIterable, Identifiable {
 
     var id: Self { self }
 
+    /// Режимы карточки «Запись экрана»; окно — отдельный инструмент.
+    static let screenModes: [CaptureMode] = [.display, .area]
+
     var title: String {
         switch self {
-        case .display: "Экран"
+        case .display: "Весь экран"
         case .window: "Окно"
         case .area: "Область"
         }
@@ -19,7 +22,14 @@ enum CaptureMode: String, CaseIterable, Identifiable {
 @MainActor
 @Observable
 final class ScreenRecorder {
-    static let shared = ScreenRecorder()
+    /// Два инструмента на одном движке: «Запись экрана» (весь экран / область) и «Запись окна».
+    enum Kind { case screen, window }
+
+    static let screen = ScreenRecorder(kind: .screen)
+    static let window = ScreenRecorder(kind: .window)
+    static var all: [ScreenRecorder] { [screen, window] }
+
+    let kind: Kind
 
     enum Phase: Equatable { case idle, preparing, recording, saving }
 
@@ -30,34 +40,47 @@ final class ScreenRecorder {
     private(set) var errorMessage: String?
 
     /// Последний режим — используется по клику на переключатель.
-    var mode: CaptureMode { didSet { defaults.set(mode.rawValue, forKey: Keys.mode) } }
-    var systemAudio: Bool { didSet { defaults.set(systemAudio, forKey: Keys.systemAudio) } }
-    var microphone: Bool { didSet { defaults.set(microphone, forKey: Keys.microphone) } }
-    var showCursor: Bool { didSet { defaults.set(showCursor, forKey: Keys.showCursor) } }
-    var showClicks: Bool { didSet { defaults.set(showClicks, forKey: Keys.showClicks) } }
+    var mode: CaptureMode { didSet { defaults.set(mode.rawValue, forKey: key("mode")) } }
+    var systemAudio: Bool { didSet { defaults.set(systemAudio, forKey: key("systemAudio")) } }
+    var microphone: Bool { didSet { defaults.set(microphone, forKey: key("microphone")) } }
+    var showCursor: Bool { didSet { defaults.set(showCursor, forKey: key("showCursor")) } }
+    var showClicks: Bool { didSet { defaults.set(showClicks, forKey: key("showClicks")) } }
 
     var isActive: Bool { phase != .idle }
+
+    /// Запись идёт в другом инструменте — одновременно пишем только что-то одно.
+    var isBlocked: Bool {
+        Self.all.contains { $0 !== self && $0.isActive }
+    }
     var elapsed: TimeInterval? { startDate.map { now.timeIntervalSince($0) } }
 
     @ObservationIgnored private var session: ScreenCaptureSession?
     @ObservationIgnored private let ticker = Ticker()
     @ObservationIgnored private let defaults = UserDefaults.standard
 
-    private enum Keys {
-        static let mode = "screenRecorder.mode"
-        static let systemAudio = "screenRecorder.systemAudio"
-        static let microphone = "screenRecorder.microphone"
-        static let showCursor = "screenRecorder.showCursor"
-        static let showClicks = "screenRecorder.showClicks"
+    private var defaultsPrefix: String { Self.defaultsPrefix(kind) }
+
+    private static func defaultsPrefix(_ kind: Kind) -> String {
+        kind == .screen ? "screenRecorder" : "windowRecorder"
     }
 
-    init() {
+    private func key(_ name: String) -> String { "\(defaultsPrefix).\(name)" }
+
+    init(kind: Kind) {
+        self.kind = kind
         let d = UserDefaults.standard
-        mode = d.string(forKey: Keys.mode).flatMap(CaptureMode.init(rawValue:)) ?? .display
-        systemAudio = d.object(forKey: Keys.systemAudio) as? Bool ?? true
-        microphone = d.object(forKey: Keys.microphone) as? Bool ?? false
-        showCursor = d.object(forKey: Keys.showCursor) as? Bool ?? true
-        showClicks = d.object(forKey: Keys.showClicks) as? Bool ?? false
+        let prefix = Self.defaultsPrefix(kind)
+        switch kind {
+        case .screen:
+            let stored = d.string(forKey: "\(prefix).mode").flatMap(CaptureMode.init(rawValue:))
+            mode = stored.flatMap { CaptureMode.screenModes.contains($0) ? $0 : nil } ?? .display
+        case .window:
+            mode = .window
+        }
+        systemAudio = d.object(forKey: "\(prefix).systemAudio") as? Bool ?? true
+        microphone = d.object(forKey: "\(prefix).microphone") as? Bool ?? false
+        showCursor = d.object(forKey: "\(prefix).showCursor") as? Bool ?? (kind == .screen)
+        showClicks = d.object(forKey: "\(prefix).showClicks") as? Bool ?? false
     }
 
     func toggle() {
@@ -65,7 +88,7 @@ final class ScreenRecorder {
     }
 
     func start(mode: CaptureMode) {
-        guard phase == .idle else { return }
+        guard phase == .idle, !isBlocked else { return }
         self.mode = mode
         errorMessage = nil
         phase = .preparing
@@ -101,7 +124,7 @@ final class ScreenRecorder {
                 return
             }
 
-            let url = Recordings.newVideoURL()
+            let url = Recordings.newVideoURL(prefix: kind == .window ? "Запись окна" : "Запись экрана")
             let session = try ScreenCaptureSession(
                 filter: target.filter,
                 configuration: configuration(for: target),

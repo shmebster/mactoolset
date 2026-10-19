@@ -19,6 +19,7 @@ struct RootView: View {
                 PreventSleepView()
                 SleepTimerView()
                 ScreenRecorderView()
+                WindowRecorderView()
                 AudioRecorderView()
             }
             .padding(10)

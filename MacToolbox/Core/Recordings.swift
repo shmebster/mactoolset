@@ -5,8 +5,8 @@ enum Recordings {
     static var videoFolder: URL { folder(in: .moviesDirectory) }
     static var audioFolder: URL { folder(in: .musicDirectory) }
 
-    static func newVideoURL() -> URL {
-        videoFolder.appendingPathComponent("Запись экрана \(timestamp()).mov")
+    static func newVideoURL(prefix: String) -> URL {
+        videoFolder.appendingPathComponent("\(prefix) \(timestamp()).mov")
     }
 
     static func newAudioURL() -> URL {

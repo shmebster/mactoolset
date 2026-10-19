@@ -5,7 +5,6 @@ import SwiftUI
 struct MenuBarLabel: View {
     private let preventSleep = PreventSleep.shared
     private let sleepTimer = SleepTimer.shared
-    private let screenRecorder = ScreenRecorder.shared
     private let audioRecorder = AudioRecorder.shared
     @AppStorage("ui.showCountdown") private var showCountdown = true
 
@@ -21,8 +20,8 @@ struct MenuBarLabel: View {
     }
 
     private var state: (String, TimeInterval?) {
-        if screenRecorder.phase == .recording {
-            return ("record", screenRecorder.elapsed)
+        if let recorder = ScreenRecorder.all.first(where: { $0.phase == .recording }) {
+            return ("record", recorder.elapsed)
         }
         if audioRecorder.phase == .recording {
             return ("record", audioRecorder.elapsed)

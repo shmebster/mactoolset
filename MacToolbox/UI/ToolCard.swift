@@ -8,6 +8,7 @@ struct ToolCard<Detail: View>: View {
     let title: String
     let status: String
     let isActive: Bool
+    var isToggleEnabled = true
     let onToggle: @MainActor () -> Void
     @Binding var isExpanded: Bool
     @ViewBuilder let detail: () -> Detail
@@ -35,6 +36,7 @@ struct ToolCard<Detail: View>: View {
                     .labelsHidden()
                     .controlSize(.small)
                     .tint(tint)
+                    .disabled(!isToggleEnabled)
 
                 SVGImage("chevron", size: 12)
                     .foregroundStyle(.secondary)
